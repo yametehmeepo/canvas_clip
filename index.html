@@ -53,12 +53,12 @@
 			//console.log(winw, winH);
 			
 			var image = new Image();
-			image.src = '1.png';
+			image.src = './1.png';
 			image.onload = function(){
 				var imageW = image.width;
 				var imageH = image.height;
-				console.log('图片宽度: ', imageW, imageH);
-				console.log('浏览器宽度: ', winW, winH);
+				//console.log('图片宽度: ', imageW, imageH);
+				//console.log('浏览器宽度: ', winW, winH);
 				if((imageW/imageH) > (winW/winH)){//图片宽高比 大于 浏览器可视区域宽高比
 					if(imageW > winW){
 						windowW = winW;
