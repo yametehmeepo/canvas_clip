@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+	<title>canvas</title>
+	<style>
+		html,body{
+			margin: 0;
+			padding: 0;
+		}
+		#buttons a + a{
+			margin-left: 8px;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas" style="border: 0px solid #eee; display: block; margin:0px auto;">canvas</canvas>
+	<!-- <div id="buttons" style="text-align: center">
+		<a href="">source-over</a>
+		<a href="">source-atop</a>
+		<a href="">source-in</a>
+		<a href="">source-out</a>
+		<a href="">destination-over</a>
+		<a href="">destination-atop</a>
+		<a href="">destination-in</a>
+		<a href="">destination-out</a>
+		<a href="">lighter</a>
+		<a href="">copy</a>
+		<a href="">xor</a>
+	</div> -->
+	<script>
+		var balls = [];
+		var windowW = 940;
+		//var windowW = 800;
+		//var windowW = 1200;//canvas宽
+		var windowH = 1230;//canvas高
+		//var windowH = 800;//canvas高
+		var skyHeight = 0.65; //天空高度系数
+		var landHeight = 0.28; //陆地高度系数
+		var rot = 0;//QQNiuLiZiLiu的旋转角度
+		var searchlight_timer = null;
+		var searchlight = {
+			x: windowW/2,
+			y: windowH/2,
+			r: windowH/6,
+			vx: (Math.random()*5+5) * (Math.pow(-1, Math.ceil(Math.random() * 100))),
+			vy: (Math.random()*5+5) * (Math.pow(-1, Math.ceil(Math.random() * 100)))
+		}
+		window.onload = function(){
+			var winW = document.documentElement.clientWidth;
+			var winH = document.documentElement.clientHeight;
+			//console.log(winw, winH);
+			
+			var image = new Image();
+			image.src = '1.png';
+			image.onload = function(){
+				var imageW = image.width;
+				var imageH = image.height;
+				console.log('图片宽度: ', imageW, imageH);
+				console.log('浏览器宽度: ', winW, winH);
+				if((imageW/imageH) > (winW/winH)){//图片宽高比 大于 浏览器可视区域宽高比
+					if(imageW > winW){
+						windowW = winW;
+						windowH = winW*imageH/imageW;
+					}else{
+						windowW = imageW;
+						windowH = imageH;
+					}
+				}else{
+					if(imageH >= winH){
+						windowW = (imageW/imageH) * winH;
+						windowH = winH;
+					}else{
+						windowW = imageW;
+						windowH = imageH;
+					}
+				}
+				searchlight = {
+					x: windowW/2,
+					y: windowH/2,
+					r: windowH/6,
+					vx: (Math.random()*5+5) * (Math.pow(-1, Math.ceil(Math.random() * 100))),
+					vy: (Math.random()*5+5) * (Math.pow(-1, Math.ceil(Math.random() * 100)))
+				}
+				console.log(windowW, windowH);
+				var canvas = document.getElementById('canvas');
+				canvas.width = windowW;
+				canvas.height = windowH;
+				var context = canvas.getContext('2d');
+				searchlight_timer = setInterval(function(){
+					drawSearchlight(context, image);
+					updateSearchlight(context);
+				}, 20);
+			}
+			/*renderBalls();
+			setInterval(function(){
+				drawBalls(context);
+				updataBalls(context);
+			}, 20);*/
+			
+			/*changeGlobalComposite('source-over');
+			var buttons = document.getElementById('buttons').getElementsByTagName('a');
+			for(var i = 0; i < buttons.length; i++){
+				buttons[i].onclick = function(){
+					changeGlobalComposite(this.text);
+					return false
+				}
+			}*/
+			//arcToTest(context, 100, 100, 400, 50, 600, 400, 200);
+			//draw2048(context, 50, 50, 400, 400, 10, 15);
+			//strokeRoundedRectangle(context, 50, 50, 600, 600, 50, '#035', 20);
+			//fillRoundedRectangle(context, 50, 50, 600, 600, 50, '#035');
+			/*var backgroundcanvas = createBackgroundCanvas();
+			var pattern = context.createPattern(backgroundcanvas, 'repeat');
+			context.fillStyle = pattern;
+			context.fillRect(0, 0, canvas.width, canvas.height);*/
+			/*var gradient = context.createRadialGradient(canvas.width/2, canvas.height, 0, canvas.width/2, canvas.height, canvas.height);
+			gradient.addColorStop(0.0, '#035');
+			gradient.addColorStop(1.0, 'black');
+			context.fillStyle = gradient;
+			context.fillRect(0, 0, canvas.width, canvas.height);
+			fillLand(context, windowW, windowH, windowH*landHeight, '#030', '#580');
+			for( var i = 0; i < 250; i++){
+				var r = Math.random() * 5 + 5;
+				var x = Math.random() * (canvas.width - 2*r) + r;
+				var y = Math.random() * (canvas.height - 2*r)*skyHeight + r;
+				var a = Math.random() * 360;
+				//var color = 'rgba(' + Math.random() * 255 + ',' + Math.random() * 255 + ',' + Math.random() * 255 + ', 1';
+				var color = '#f9bc35';
+				drawStar(r, x, y, color, 1, a, context);
+			}
+			fillMoon(context, 900, 160, 80, 2, 30, '#fb5');*/
+			//drawClock(context);
+		}
+
+		function drawSearchlight(cxt, image){
+			cxt.clearRect(0, 0, cxt.canvas.width, cxt.canvas.height)
+			cxt.save();
+			cxt.beginPath();
+			cxt.fillStyle = 'black';
+			cxt.fillRect(0, 0, cxt.canvas.width, cxt.canvas.height);
+			cxt.beginPath();
+			cxt.arc(searchlight.x, searchlight.y, searchlight.r, 0, 2*Math.PI);
+			cxt.fillStyle = '#fff';
+			cxt.clip();
+			cxt.fill();
+			cxt.beginPath();
+			// var parttern = cxt.createPattern(image, 'no-repeat')
+			// cxt.fillStyle = parttern;
+			// cxt.fillRect(0, 0, cxt.canvas.width, cxt.canvas.height);
+			cxt.drawImage(image, 0, 0, windowW, windowH);
+			cxt.restore();
+		}
+
+		function updateSearchlight(cxt){
+			var w = cxt.canvas.width;
+			var h = cxt.canvas.height;
+			searchlight.x += searchlight.vx;
+			searchlight.y += searchlight.vy;
+			if(searchlight.x <= searchlight.r){
+				searchlight.x = searchlight.r;
+				searchlight.vx = -searchlight.vx;
+			}
+			if(searchlight.x >= w - searchlight.r){
+				searchlight.x = w - searchlight.r;
+				searchlight.vx = -searchlight.vx;
+			}
+			if(searchlight.y <= searchlight.r){
+				searchlight.y = searchlight.r;
+				searchlight.vy = -searchlight.vy;
+			}
+			if(searchlight.y >= h - searchlight.r){
+				searchlight.y = h - searchlight.r;
+				searchlight.vy = -searchlight.vy;
+			}
+		}
+
+		function updataBalls(cxt){
+			var w = cxt.canvas.width;
+			var h = cxt.canvas.height;
+			for(var i = 0; i < balls.length; i++){
+				balls[i].x += balls[i].vx;
+				balls[i].y += balls[i].vy;
+				if(balls[i].x <= balls[i].r){
+					balls[i].x = balls[i].r;
+					balls[i].vx = -balls[i].vx;
+				}
+				if(balls[i].x >= w - balls[i].r){
+					balls[i].x = w - balls[i].r;
+					balls[i].vx = -balls[i].vx;
+				}
+				if(balls[i].y <= balls[i].r){
+					balls[i].y = balls[i].r;
+					balls[i].vy = -balls[i].vy;
+				}
+				if(balls[i].y >= h - balls[i].r){
+					balls[i].y = h - balls[i].r;
+					balls[i].vy = -balls[i].vy;
+				}
+			}
+		}
+
+		function drawBalls(cxt){
+			cxt.clearRect(0, 0, cxt.canvas.width, cxt.canvas.height);
+			cxt.globalAlpha = 1;
+			cxt.globalCompositeOperation = 'lighter';
+			for(var i = 0; i < balls.length; i++){
+				cxt.beginPath();
+				cxt.arc(balls[i].x, balls[i].y, balls[i].r, 0, 2*Math.PI);
+				cxt.closePath();
+				cxt.fillStyle = balls[i].color;
+				cxt.fill();
+			}
+		}
+
+		function renderBalls(){
+			for(var i = 0; i < 50; i++){
+				var R = Math.floor(Math.random()*255);
+				var G = Math.floor(Math.random()*255);
+				var B = Math.floor(Math.random()*255);
+				var a = 1;
+				var r = Math.random()*20 + 40;
+				var X = Math.random()*(windowW - 2*r) + r;
+				var Y = Math.random()*(windowH - 2*r) + r;
+				var color = 'rgb(' + R + ',' + G + ','+ B + ',' + a + ')';
+				var vx =( Math.random()*5 + 5) * Math.pow(-1, Math.ceil(Math.random()*100));
+				var vy =( Math.random()*5 + 5) * Math.pow(-1, Math.ceil(Math.random()*100));
+				balls.push({
+					x: X,
+					y: Y,
+					r: r,
+					vx: vx,
+					vy: vy,
+					color: color
+				})
+			}
+		}
+
+		function changeGlobalComposite( compositeStyle){
+			var canvas = document.getElementById('canvas');
+			canvas.width = windowW;
+			canvas.height = windowH;
+			var context = canvas.getContext('2d');
+			context.globalAlpha = 1;
+			context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+			context.fillStyle = '#035';
+			context.fillRect(100, 200, 400, 400);
+			context.beginPath();
+			context.globalCompositeOperation = compositeStyle;
+			context.fillStyle = 'red';
+			context.moveTo(400, 400);
+			context.lineTo(200, 700);
+			context.lineTo(600, 700);
+			context.closePath();
+			context.fill();
+		}
+
+
+		function fillLand(cxt, w, h, landH, c1, c2){
+			cxt.save();
+			cxt.beginPath();
+			cxt.moveTo(0, h - landH);
+			cxt.bezierCurveTo(w/4, h - landH - h/10, w*3/4, h - landH + h/5, w, h - landH + h/40);
+			cxt.lineTo(w, h);
+			cxt.lineTo(0, h);
+			cxt.closePath();
+			var landStyle = cxt.createLinearGradient(0, h, 0, 0);
+			landStyle.addColorStop(0.0, c1);
+			landStyle.addColorStop(1.0, c2);
+			cxt.fillStyle = landStyle;
+			cxt.fill();
+			cxt.restore();
+		}
+
+		function fillMoon(cxt, x, y, r, d, angle, color){
+			cxt.save();
+			cxt.translate(x, y);
+			cxt.scale(r, r);
+			cxt.rotate(angle*Math.PI/180);
+			pathMoon(cxt, d);
+			cxt.fillStyle = color || '#fb5';
+			cxt.fill();
+			cxt.restore();
+		}
+
+		function pathMoon(cxt, d){
+			cxt.beginPath();
+			cxt.arc(0, 0, 1, 0.5*Math.PI, 1.5*Math.PI, true);
+			cxt.moveTo(0, -1);
+			//cxt.arcTo(d, 0, 0, 1, radiusCalculation(1, d));
+			cxt.quadraticCurveTo(1, 0, 0, 1);//贝塞尔二次曲线
+		}
+
+		function radiusCalculation(r, d){
+			return Math.sqrt(r*r + d*d)*r/d
+		}
+
+		function arcToTest(cxt, x0, y0, x1, y1, x2, y2, r){
+			cxt.beginPath();
+			cxt.moveTo(x0, y0);
+			cxt.lineTo(x1, y1);
+			cxt.lineTo(x2, y2);
+			cxt.strokeStyle = 'gray';
+			cxt.lineWidth = 2;
+			cxt.stroke();
+
+			cxt.beginPath();
+			cxt.moveTo(x0, y0);
+			cxt.arcTo(x1, y1, x2, y2, r);
+			cxt.strokeStyle = 'rgba(255, 0, 0, 0.4)';
+			cxt.lineWidth = 4;
+			cxt.stroke();
+
+			cxt.font = '15px Arial';
+			cxt.textAlign = 'center';
+			cxt.textBaseLine = 'bottom';
+			cxt.fillText('起始点(' + x0 + ','+ y0 + ')', x0 , y0 - 15);
+			cxt.textAlign = 'center';
+			cxt.textBaseLine = 'bottom';
+			cxt.fillText('x1(' + x1 + ',' + y1 + ')', x1 , y1 - 15);
+			cxt.textAlign = 'center';
+			cxt.textBaseLine = 'bottom';
+			cxt.fillText('x2(' + x2 + ',' + y2 + ')', x2 , y2 + 15);
+		}
+
+		function draw2048(cxt, x, y, w, h, r, gap){
+			cxt.save();
+			fillRoundedRectangle(cxt, x, y, w, h, r, '#b8ada0');
+			var sw = (w - 5*gap)/4;
+			var sh = (h - 5*gap)/4;
+			for(var i = 0;i < 4;i++){
+				for(var j = 0; j < 4;j++){
+					fillRoundedRectangle(cxt, x + gap + (sw + gap)*j, y + gap + (sh + gap)*i, sw, sh, r, '#ccbeb6');
+				}
+			}
+			cxt.restore();
+		}
+
+		function fillRoundedRectangle(cxt, x, y, w, h, r, color){
+			if(2*r > w || 2*r > h){
+				return
+			}
+			cxt.save();
+			cxt.translate(x, y);
+			pathRoundRect(w, h, r, cxt);
+			cxt.restore();
+			cxt.fillStyle = color || 'black';
+			cxt.fill();
+		}
+
+		function strokeRoundedRectangle(cxt, x, y, w, h, r, color, lineWidth){
+			if(2*r > w || 2*r > h){
+				return
+			}
+			cxt.save();
+			cxt.translate(x, y);
+			pathRoundRect(w, h, r, cxt);
+			cxt.restore();
+			cxt.strokeStyle = color || 'black';
+			cxt.lineWidth = lineWidth || 1;
+			cxt.stroke();
+		}
+
+		function pathRoundRect(w, h, r, cxt){
+			cxt.beginPath();
+			cxt.arc(r, r, r, Math.PI, 1.5*Math.PI);
+			cxt.lineTo(w - r, 0);
+			cxt.arc(w - r, r, r, 1.5*Math.PI, 2*Math.PI);
+			cxt.lineTo(w, h - r);
+			cxt.arc(w - r, h - r, r, 0, 0.5*Math.PI);
+			cxt.lineTo(r, h);
+			cxt.arc(r, h - r, r, 0.5*Math.PI, Math.PI);
+			cxt.closePath();
+		}
+
+		function drawClock(context){
+			context.lineWidth = 2;
+			context.beginPath();
+			context.arc(400, 400, 300, 0, 2*Math.PI);
+			context.moveTo(690, 400);
+			context.arc(400, 400, 290, 0, 2*Math.PI);
+			context.moveTo(400, 400);
+			context.lineTo(400, 140);
+			context.lineTo(400, 400);
+			context.lineTo(220, 400);
+			context.stroke();
+
+			context.beginPath();
+			context.font = '24px bold Arial';
+			context.textAlign = 'center';
+			context.textBaseLine = 'middle';
+			context.fillText('12', 400, 135);
+		}
+
+		function drawQQNiuLiZiLiu(cxt){
+			cxt.clearRect(0, 0, cxt.canvas.width, cxt.canvas.height);
+			cxt.beginPath();
+			for(var i = 0; i < 5; i++){
+				cxt.lineTo(Math.cos((90 + i * 144 + rot)/180 * Math.PI)*300 + 400, -Math.sin((90 + i * 144 + rot)/180 * Math.PI)*300 + 400);
+			}
+			cxt.closePath();
+			cxt.strokeStyle = 'red';
+			cxt.lineWidth = 10;
+			cxt.stroke();
+			cxt.beginPath();
+			cxt.arc(400, 400, 312, 0, 2*Math.PI);
+			cxt.closePath();
+			cxt.strokeStyle = 'red';
+			cxt.lineWidth = 10;
+			cxt.stroke();
+			rot+=2;
+		}
+
+		function createBackgroundCanvas(){
+			var backcanvas = document.createElement('canvas');
+			backcanvas.width = 100;
+			backcanvas.height = 100;
+			var backcontext = backcanvas.getContext('2d');
+			drawStar(50, 50, 50, '#f9bc35', 2, 0, backcontext);
+			return backcanvas;
+		}
+
+		function drawStar(r, x, y, color, lineWidth, rot, cxt){
+			cxt.save();
+			cxt.translate(x, y);
+			cxt.rotate(rot*Math.PI/180);
+			cxt.scale(r, r);
+			startPath(cxt);
+			//cxt.strokeStyle = '#f7d76c';
+			//cxt.lineWidth = lineWidth;
+			cxt.fillStyle = color;
+			cxt.fill();
+			//cxt.stroke();
+			cxt.restore();
+		}
+
+		function startPath(cxt){
+			cxt.beginPath();
+			for(var i = 0; i < 5; i++){
+				cxt.lineTo(Math.cos((18 + i * 72 - rot)/180 * Math.PI), -Math.sin((18 + i * 72 - rot)/180 * Math.PI));
+				cxt.lineTo(Math.cos((54 + i * 72 - rot)/180 * Math.PI)*0.5, -Math.sin((54 + i * 72 - rot)/180 * Math.PI)*0.5);
+			}
+			cxt.closePath();
+		}
+	</script>
+</body>
+</html>
